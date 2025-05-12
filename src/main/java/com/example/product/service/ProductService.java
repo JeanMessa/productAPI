@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ProductService {
@@ -25,5 +26,10 @@ public class ProductService {
     public List<ProductResponseDTO> getAllProducts(){
         List<ProductResponseDTO> allProducts = productRepository.findAll().stream().map(ProductResponseDTO::new).toList();
         return allProducts;
+    }
+
+    public ProductResponseDTO getProduct(UUID productId){
+        Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalMonitorStateException("Product not found."));
+        return new ProductResponseDTO(product);
     }
 }
