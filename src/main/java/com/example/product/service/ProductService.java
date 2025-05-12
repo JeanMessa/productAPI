@@ -2,9 +2,12 @@ package com.example.product.service;
 
 import com.example.product.domain.product.Product;
 import com.example.product.domain.product.ProductRequestDTO;
+import com.example.product.domain.product.ProductResponseDTO;
 import com.example.product.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ProductService {
@@ -17,5 +20,10 @@ public class ProductService {
         product.setName(data.name());
         product.setPrice(data.price());
         return productRepository.save(product);
+    }
+
+    public List<ProductResponseDTO> getAllProducts(){
+        List<ProductResponseDTO> allProducts = productRepository.findAll().stream().map(ProductResponseDTO::new).toList();
+        return allProducts;
     }
 }
