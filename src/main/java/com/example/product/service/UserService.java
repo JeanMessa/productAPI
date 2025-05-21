@@ -1,11 +1,12 @@
 package com.example.product.service;
 
-import com.example.product.domain.user.RegisterRequestDTO;
-import com.example.product.domain.user.RegisterResponseDTO;
-import com.example.product.domain.user.User;
+import com.example.product.domain.user.*;
 import com.example.product.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,13 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private TokenService tokenService;
 
     public RegisterResponseDTO create(RegisterRequestDTO data){
         if (userRepository.findByUsername(data.username())!=null){
@@ -31,5 +38,13 @@ public class UserService {
             userRepository.save(newUser);
             return new RegisterResponseDTO(HttpStatus.OK,"User registered successfully.");
         }
+    }
+
+    public LoginResponseDTO login(LoginRequestDTO data){
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(data.username(),data.password());
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+
+        String token = tokenService.generateToken((User)authentication.getPrincipal());
+        return new LoginResponseDTO(token);
     }
 }
