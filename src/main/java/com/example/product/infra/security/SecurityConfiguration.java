@@ -30,6 +30,7 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST,"/product").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,"/product/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST,"/user/register").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST,"/user/login").permitAll()
                         .anyRequest().authenticated()
