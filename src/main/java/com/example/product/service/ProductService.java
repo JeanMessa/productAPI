@@ -26,8 +26,8 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public List<ProductResponseDTO> getAllProducts(){
-        List<ProductResponseDTO> allProducts = productRepository.findAll().stream().map(ProductResponseDTO::new).toList();
+    public List<ProductResponseDTO> getAllProducts(String name,Double minPrice,Double maxPrice){
+        List<ProductResponseDTO> allProducts = productRepository.getAllFiltered(name,minPrice,maxPrice);
         return allProducts;
     }
 

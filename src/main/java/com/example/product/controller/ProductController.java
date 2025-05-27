@@ -26,8 +26,10 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponseDTO>> getAll(){
-        List<ProductResponseDTO> allProducts = productService.getAllProducts();
+    public ResponseEntity<List<ProductResponseDTO>> getAll(@RequestParam(required = false) String name,
+                                                           @RequestParam(required = false)  Double minPrice,
+                                                           @RequestParam(required = false)  Double maxPrice){
+        List<ProductResponseDTO> allProducts = productService.getAllProducts(name,minPrice,maxPrice);
         return  ResponseEntity.ok(allProducts);
     }
 
