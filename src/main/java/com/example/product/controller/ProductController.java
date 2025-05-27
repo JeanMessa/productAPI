@@ -1,5 +1,6 @@
 package com.example.product.controller;
 
+import com.example.product.domain.product.DeleteResponseDTO;
 import com.example.product.domain.product.Product;
 import com.example.product.domain.product.ProductRequestDTO;
 import com.example.product.domain.product.ProductResponseDTO;
@@ -42,5 +43,10 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<String> delete(@PathVariable UUID productId){
+        DeleteResponseDTO deleteResponseDTO = productService.deleteProduct(productId);
+        return new ResponseEntity<>(deleteResponseDTO.message(),deleteResponseDTO.httpStatus());
+    }
 
 }
