@@ -45,6 +45,6 @@ public class UserService {
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
         String token = tokenService.generateToken((User)authentication.getPrincipal());
-        return new LoginResponseDTO(token);
+        return new LoginResponseDTO(token,data.username());
     }
 }
