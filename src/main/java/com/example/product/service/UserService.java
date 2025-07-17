@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,7 @@ public class UserService {
         Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
         String token = tokenService.generateToken((User)authentication.getPrincipal());
-        return new LoginResponseDTO(token,data.username());
+        User user = (User) userRepository.findByUsername(data.username());
+        return new LoginResponseDTO(token,data.username(),user.getRole());
     }
 }
