@@ -13,7 +13,7 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     @Query("SELECT p FROM Product p " +
             "WHERE (:name IS NULL OR name LIKE %:name%) AND " +
-            "((:minPrice IS NULL OR :minPrice <= price) AND (:maxPrice IS NULL OR :maxPrice >= price))")
+            "((:minPrice IS NULL OR :minPrice <= price) AND (:maxPrice IS NULL OR :maxPrice >= price)) Order by p.name")
     public List<ProductResponseDTO> getAllFiltered(@Param("name") String name,
                                                    @Param("minPrice")  Double minPrice,
                                                    @Param("maxPrice")  Double maxPrice);
