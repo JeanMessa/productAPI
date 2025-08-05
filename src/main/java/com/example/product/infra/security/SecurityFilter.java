@@ -27,11 +27,18 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = recoverToken(request);
         if (token!=null){
-            String username = tokenService.validateToken(token);
-            UserDetails user = userRepository.findByUsername(username);
+            try {
+                String username = tokenService.validateToken(token);
+                UserDetails user = userRepository.findByUsername(username);
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user.getUsername(),null,user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user.getUsername(),null,user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }catch (RuntimeException e){
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write(e.getMessage());
+                return;
+            }
+
         }
         filterChain.doFilter(request,response);
     }
