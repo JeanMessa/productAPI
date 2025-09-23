@@ -7,6 +7,7 @@ Esse projeto utiliza de Java 17 com Spring Boot 3.5, Spring Boot Dev Tools, Spri
 <h3>Documentação</h3>
 A documentação de todos os endpoints se encontra em https://documenter.getpostman.com/view/45420446/2sB2qi8cwd.
 <h3>Como Testar</h3>
+Teste utilizando https://documenter.getpostman.com/view/45420446/2sB2qi8cwd, através do Postman utilizando a URL do projeto no Render, ou teste localmente seguindo o passo a passo:
 <ol>
   <li>Clone usando: 
     
@@ -34,7 +35,7 @@ A documentação de todos os endpoints se encontra em https://documenter.getpost
     Execute a aplicação.
   </li>
   <li>
-    Teste através do Postman com https://documenter.getpostman.com/view/45420446/2sB2qi8cwd.
+    Teste através do Postman com https://documenter.getpostman.com/view/45420446/2sB2qi8cwd utilizando a URL do localhost.
   </li>
 </ol>
 
