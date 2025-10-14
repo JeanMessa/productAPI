@@ -1,14 +1,11 @@
 package com.example.product.service;
 
-import com.example.product.domain.product.DeleteResponseDTO;
 import com.example.product.domain.product.Product;
 import com.example.product.domain.product.ProductRequestDTO;
 import com.example.product.domain.product.ProductResponseDTO;
-import com.example.product.domain.user.RegisterResponseDTO;
 import com.example.product.exception.ProductNotFoundException;
 import com.example.product.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,12 +45,9 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public DeleteResponseDTO deleteProduct(UUID productId){
-        if (productRepository.findById(productId).isPresent()){
-            productRepository.deleteById(productId);
-            return new DeleteResponseDTO(HttpStatus.OK,"Product " + productId + " deleted.");
-        }else {
-            return new DeleteResponseDTO(HttpStatus.BAD_REQUEST,"Product not found.");
-        }
+    public void deleteProduct(UUID productId){
+        productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("Product not found."));
+
+        productRepository.deleteById(productId);
     }
 }
