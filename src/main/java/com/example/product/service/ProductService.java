@@ -5,6 +5,7 @@ import com.example.product.domain.product.Product;
 import com.example.product.domain.product.ProductRequestDTO;
 import com.example.product.domain.product.ProductResponseDTO;
 import com.example.product.domain.user.RegisterResponseDTO;
+import com.example.product.exception.ProductNotFoundException;
 import com.example.product.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,12 +33,12 @@ public class ProductService {
     }
 
     public ProductResponseDTO getProduct(UUID productId){
-        Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalMonitorStateException("Product not found."));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("Product not found."));
         return new ProductResponseDTO(product);
     }
 
     public Product updateProduct(UUID productId, ProductRequestDTO data){
-        Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalMonitorStateException("Product not found."));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException("Product not found."));
         if (data.name()!=null) {
             product.setName(data.name());
         }
