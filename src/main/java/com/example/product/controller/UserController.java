@@ -3,7 +3,6 @@ package com.example.product.controller;
 import com.example.product.domain.user.LoginRequestDTO;
 import com.example.product.domain.user.LoginResponseDTO;
 import com.example.product.domain.user.RegisterRequestDTO;
-import com.example.product.domain.user.RegisterResponseDTO;
 import com.example.product.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +21,8 @@ public class UserController {
 
     @PostMapping("/register")
     ResponseEntity<String> register(@RequestBody RegisterRequestDTO data){
-        RegisterResponseDTO registerResponseDTO = userService.create(data);
-        return new ResponseEntity<>(registerResponseDTO.message(),registerResponseDTO.httpStatus());
+        userService.create(data);
+        return ResponseEntity.ok("User registered successfully.");
     }
 
     @PostMapping("/login")

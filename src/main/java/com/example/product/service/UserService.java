@@ -1,14 +1,14 @@
 package com.example.product.service;
 
 import com.example.product.domain.user.*;
+import com.example.product.exception.UsernameAlreadyInUseException;
 import com.example.product.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,21 +23,23 @@ public class UserService {
     @Autowired
     private TokenService tokenService;
 
-    public RegisterResponseDTO create(RegisterRequestDTO data){
-        if (userRepository.findByUsername(data.username())!=null){
-            return new RegisterResponseDTO(HttpStatus.BAD_REQUEST,"This username is already in use.");
-        }else{
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public void create(RegisterRequestDTO data){
+        if (userRepository.findByUsername(data.username())==null){
             User newUser = new User();
 
             newUser.setUsername(data.username());
 
-            String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
+            String encryptedPassword = passwordEncoder.encode(data.password());
             newUser.setPassword(encryptedPassword);
 
             newUser.setRole(data.role());
 
             userRepository.save(newUser);
-            return new RegisterResponseDTO(HttpStatus.OK,"User registered successfully.");
+        }else{
+            throw new UsernameAlreadyInUseException("This username is already in use.");
         }
     }
 
