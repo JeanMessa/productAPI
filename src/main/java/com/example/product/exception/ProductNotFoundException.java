@@ -1,7 +1,7 @@
 package com.example.product.exception;
 
 public class ProductNotFoundException extends RuntimeException{
-    public ProductNotFoundException(String mesage) {
-        super(mesage);
+    public ProductNotFoundException(String message) {
+        super(message);
     }
 }
