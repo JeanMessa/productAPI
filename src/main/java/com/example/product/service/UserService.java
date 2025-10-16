@@ -6,6 +6,7 @@ import com.example.product.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,21 +44,20 @@ public class UserService {
         }
     }
 
-    public LoginResponseDTO login(LoginRequestDTO data){
-        User user = (User) userRepository.findByUsername(data.username());
+    public LoginResponseDTO login(LoginRequestDTO data) {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(data.username(), data.password());
 
-        if (user!=null){
-            try {
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(data.username(), data.password());
-                Authentication authentication = authenticationManager.authenticate(authenticationToken);
-                String token = tokenService.generateToken((User) authentication.getPrincipal());
+        try {
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
-                return new LoginResponseDTO(token, data.username(), user.getRole(),true);
-            }catch (BadCredentialsException e){
-                return new LoginResponseDTO(null,null,null,false);
-            }
-        }else{
-            return new LoginResponseDTO(null,null,null,false);
+            User user = (User) authentication.getPrincipal();
+
+            String token = tokenService.generateToken(user);
+
+            return new LoginResponseDTO(token, data.username(), user.getRole());
+        }catch (InternalAuthenticationServiceException e){
+            throw new BadCredentialsException("User or password incorrect.");
         }
+
     }
 }

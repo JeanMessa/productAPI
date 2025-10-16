@@ -27,11 +27,6 @@ public class UserController {
 
     @PostMapping("/login")
     ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO data){
-        LoginResponseDTO  loginRequestDTO = userService.login(data);
-        if (loginRequestDTO.success()) {
-            return ResponseEntity.ok(userService.login(data));
-        }else{
-            return new ResponseEntity<>(loginRequestDTO,HttpStatus.UNAUTHORIZED);
-        }
+        return ResponseEntity.ok(userService.login(data));
     }
 }

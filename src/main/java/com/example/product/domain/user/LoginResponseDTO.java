@@ -1,4 +1,4 @@
 package com.example.product.domain.user;
 
-public record LoginResponseDTO(String token,String username,UserRole role,boolean success) {
+public record LoginResponseDTO(String token,String username,UserRole role) {
 }
