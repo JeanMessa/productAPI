@@ -7,7 +7,9 @@ import com.example.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,9 +21,12 @@ public class ProductController {
     private ProductService productService;
 
     @PostMapping
-    public ResponseEntity<Product> create(@RequestBody ProductRequestDTO data){
+    public ResponseEntity<Product> create(@RequestBody ProductRequestDTO data, UriComponentsBuilder uriBuilder){
         Product newProduct = productService.createProduct(data);
-        return ResponseEntity.ok(newProduct);
+
+        URI location = uriBuilder.path("/product/{id}").buildAndExpand(newProduct.getProductId()).toUri();
+
+        return ResponseEntity.created(location).body(newProduct);
     }
 
     @GetMapping
@@ -45,9 +50,9 @@ public class ProductController {
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<String> delete(@PathVariable UUID productId){
+    public ResponseEntity<Void> delete(@PathVariable UUID productId){
         productService.deleteProduct(productId);
-        return ResponseEntity.ok("Product " + productId + " deleted.");
+        return ResponseEntity.noContent().build();
     }
 
 }
