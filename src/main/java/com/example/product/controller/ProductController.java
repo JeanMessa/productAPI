@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+import jakarta.validation.Valid;
 
 import java.net.URI;
 import java.util.List;
@@ -21,7 +22,7 @@ public class ProductController {
     private ProductService productService;
 
     @PostMapping
-    public ResponseEntity<Product> create(@RequestBody ProductRequestDTO data, UriComponentsBuilder uriBuilder){
+    public ResponseEntity<Product> create(@RequestBody @Valid ProductRequestDTO data, UriComponentsBuilder uriBuilder){
         Product newProduct = productService.createProduct(data);
 
         URI location = uriBuilder.path("/product/{id}").buildAndExpand(newProduct.getProductId()).toUri();
