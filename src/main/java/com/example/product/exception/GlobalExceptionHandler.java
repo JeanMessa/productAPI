@@ -7,6 +7,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
 import java.util.List;
 
 @ControllerAdvice
@@ -36,5 +38,14 @@ public class GlobalExceptionHandler {
                 .toList();
 
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> MethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        if (ex.getName().equals("productId")){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid format for Product Id, the format must be a valid UUID.");
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid format for " + ex.getName() + " Parameter.");
+        }
     }
 }
