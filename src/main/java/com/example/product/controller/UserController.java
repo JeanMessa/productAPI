@@ -4,6 +4,7 @@ import com.example.product.domain.user.LoginRequestDTO;
 import com.example.product.domain.user.LoginResponseDTO;
 import com.example.product.domain.user.RegisterRequestDTO;
 import com.example.product.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +21,13 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/register")
-    ResponseEntity<String> register(@RequestBody RegisterRequestDTO data){
+    ResponseEntity<String> register(@RequestBody @Valid RegisterRequestDTO data){
         userService.create(data);
         return ResponseEntity.ok("User registered successfully.");
     }
 
     @PostMapping("/login")
-    ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO data){
+    ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO data){
         return ResponseEntity.ok(userService.login(data));
     }
 }
