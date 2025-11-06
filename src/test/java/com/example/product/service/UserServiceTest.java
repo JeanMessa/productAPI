@@ -123,7 +123,7 @@ class UserServiceTest {
         }
 
         @Test
-        @DisplayName("Should throw BadCredentialsException when password is not found.")
+        @DisplayName("Should throw BadCredentialsException when username is not found.")
         void login_IncorrectUsername_ThrowBadCredentialsException(){
             //ARRANGE
             LoginRequestDTO loginRequestDTO = new LoginRequestDTO("nonExistentUser","123");
