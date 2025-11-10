@@ -4,6 +4,7 @@ import com.example.product.domain.product.Product;
 import com.example.product.domain.product.ProductRequestDTO;
 import com.example.product.domain.product.ProductResponseDTO;
 import com.example.product.exception.ProductNotFoundException;
+import com.example.product.infra.security.SecurityConfiguration;
 import com.example.product.repository.UserRepository;
 import com.example.product.service.ProductService;
 import com.example.product.service.TokenService;
@@ -11,10 +12,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.stubbing.answers.DoesNothing;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = ProductController.class,
-    excludeAutoConfiguration = {SecurityAutoConfiguration.class}
-)
+@Import(SecurityConfiguration.class)
+@WebMvcTest(controllers = ProductController.class)
 class ProductControllerTest {
 
     @Autowired
@@ -63,7 +63,9 @@ class ProductControllerTest {
             //ACT
             mockMvc.perform(post(PRODUCT_API_URL)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(productRequestDTO)))
+                            .content(objectMapper.writeValueAsString(productRequestDTO))
+                            .with(user("UserTest").roles("ADMIN")))
+
 
                     //ASSERT
                     .andExpect(status().isCreated())
@@ -87,7 +89,9 @@ class ProductControllerTest {
             //ACT
             mockMvc.perform(post(PRODUCT_API_URL)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(productRequestDTO)))
+                            .content(objectMapper.writeValueAsString(productRequestDTO))
+                            .with(user("UserTest").roles("ADMIN")))
+
 
                     //ASSERT
                     .andExpect(status().isBadRequest())
@@ -103,6 +107,43 @@ class ProductControllerTest {
 
                     .andDo(result -> verify(productService,never()).createProduct(any(ProductRequestDTO.class)));
         }
+
+        @Test
+        @DisplayName("Should return 403 when users role is common.")
+        void create_WhenUserIsCommon_Return403() throws Exception {
+            //ARRANGE
+            ProductRequestDTO productRequestDTO = new ProductRequestDTO("Smartphone",10.5);
+
+            //ACT
+            mockMvc.perform(post(PRODUCT_API_URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(productRequestDTO))
+                            .with(user("UserTest").roles("COMMON")))
+
+
+                    //ASSERT
+                    .andExpect(status().isForbidden())
+
+                    .andDo(result -> verify(productService,never()).createProduct(any(ProductRequestDTO.class)));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when user isn't authenticated.")
+        void create_WhenUserNotAuthenticated_Return401() throws Exception {
+            //ARRANGE
+            ProductRequestDTO productRequestDTO = new ProductRequestDTO("Smartphone",10.5);
+
+            //ACT
+            mockMvc.perform(post(PRODUCT_API_URL)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(productRequestDTO)))
+
+                    //ASSERT
+                    .andExpect(status().isUnauthorized())
+
+                    .andDo(result -> verify(productService,never()).createProduct(any(ProductRequestDTO.class)));
+        }
+
     }
 
     @Nested
@@ -120,7 +161,8 @@ class ProductControllerTest {
             when(productService.getAllProducts(null, null, null)).thenReturn(productResponseDTOListMock);
 
             //ACT
-            mockMvc.perform(get(PRODUCT_API_URL))
+            mockMvc.perform(get(PRODUCT_API_URL)
+                    .with(user("UserTest").roles("COMMON")))
 
                     //ASSERT
                     .andExpect(status().isOk())
@@ -157,7 +199,8 @@ class ProductControllerTest {
                             .param("name",name)
                             .param("minPrice",minPrice.toString())
                             .param("maxPrice",maxPrice.toString())
-                            .contentType(MediaType.APPLICATION_JSON))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .with(user("UserTest").roles("COMMON")))
 
                     //ASSERT
                     .andExpect(status().isOk())
@@ -190,7 +233,8 @@ class ProductControllerTest {
                             .param("name",name)
                             .param("minPrice",minPrice.toString())
                             .param("maxPrice",maxPrice.toString())
-                            .contentType(MediaType.APPLICATION_JSON))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .with(user("UserTest").roles("COMMON")))
 
                     //ASSERT
                     .andExpect(status().isOk())
@@ -199,6 +243,20 @@ class ProductControllerTest {
 
                     .andDo(result -> verify(productService, times(1)).getAllProducts(name, minPrice, maxPrice));
         }
+
+        @Test
+        @DisplayName("Should return 401 when user isn't authenticated.")
+        void getAll_WhenUserNotAuthenticated_Return401() throws Exception {
+
+            //ACT
+            mockMvc.perform(get(PRODUCT_API_URL))
+
+                    //ASSERT
+                    .andExpect(status().isUnauthorized())
+
+                    .andDo(result -> verify(productService,never()).getAllProducts(any(),any(),any()));
+        }
+
     }
 
     @Nested
@@ -214,7 +272,8 @@ class ProductControllerTest {
             when(productService.getProduct(productID)).thenReturn(productResponseDTO);
 
             //ACT
-            mockMvc.perform(get(PRODUCT_API_URL + "/{id}", productID))
+            mockMvc.perform(get(PRODUCT_API_URL + "/{id}", productID)
+                            .with(user("UserTest").roles("COMMON")))
 
                     //ASSERT
                     .andExpect(status().isOk())
@@ -237,7 +296,8 @@ class ProductControllerTest {
             when(productService.getProduct(nonExistentId)).thenThrow(new ProductNotFoundException(expectedMessage));
 
             //ACT
-            mockMvc.perform(get(PRODUCT_API_URL + "/{id}", nonExistentId))
+            mockMvc.perform(get(PRODUCT_API_URL + "/{id}", nonExistentId)
+                            .with(user("UserTest").roles("COMMON")))
 
                     //ASSERT
                     .andExpect(status().isNotFound())
@@ -254,7 +314,8 @@ class ProductControllerTest {
             String invalidFormatId = "Id in Invalid Format";
 
             //ACT
-            mockMvc.perform(get(PRODUCT_API_URL + "/{id}", invalidFormatId))
+            mockMvc.perform(get(PRODUCT_API_URL + "/{id}", invalidFormatId)
+                            .with(user("UserTest").roles("COMMON")))
 
                     //ASSERT
                     .andExpect(status().isBadRequest())
@@ -262,6 +323,21 @@ class ProductControllerTest {
                     .andExpect(content().string("Invalid format for Product Id, the format must be a valid UUID."))
 
                     .andDo(result -> verify(productService, never()).getProduct(any(UUID.class)));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when user isn't authenticated.")
+        void get_WhenUserNotAuthenticated_Return401() throws Exception {
+            //ARRANGE
+            UUID productID = UUID.randomUUID();
+
+            //ACT
+            mockMvc.perform(get(PRODUCT_API_URL + "/{id}", productID))
+
+                    //ASSERT
+                    .andExpect(status().isUnauthorized())
+
+                    .andDo(result -> verify(productService,never()).getProduct(any(UUID.class)));
         }
 
     }
@@ -282,7 +358,8 @@ class ProductControllerTest {
             //ACT
             mockMvc.perform(put(PRODUCT_API_URL + "/{id}", productID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(productRequestDTO)))
+                            .content(objectMapper.writeValueAsString(productRequestDTO))
+                            .with(user("UserTest").roles("ADMIN")))
 
                     //ASSERT
                     .andExpect(status().isOk())
@@ -309,7 +386,8 @@ class ProductControllerTest {
             //ACT
             mockMvc.perform(put(PRODUCT_API_URL + "/{id}", nonExistentId)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(productRequestDTO)))
+                            .content(objectMapper.writeValueAsString(productRequestDTO))
+                            .with(user("UserTest").roles("ADMIN")))
 
                     //ASSERT
                     .andExpect(status().isNotFound())
@@ -330,7 +408,8 @@ class ProductControllerTest {
             //ACT
             mockMvc.perform(put(PRODUCT_API_URL + "/{id}", invalidFormatId)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(productRequestDTO)))
+                            .content(objectMapper.writeValueAsString(productRequestDTO))
+                            .with(user("UserTest").roles("ADMIN")))
 
                     //ASSERT
                     .andExpect(status().isBadRequest())
@@ -353,7 +432,8 @@ class ProductControllerTest {
             //ACT
             mockMvc.perform(put(PRODUCT_API_URL + "/{id}", productID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(productRequestDTO)))
+                            .content(objectMapper.writeValueAsString(productRequestDTO))
+                            .with(user("UserTest").roles("ADMIN")))
 
                     //ASSERT
                     .andExpect(status().isOk())
@@ -378,7 +458,8 @@ class ProductControllerTest {
             //ACT
             mockMvc.perform(put(PRODUCT_API_URL + "/{id}", productID)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(productRequestDTO)))
+                            .content(objectMapper.writeValueAsString(productRequestDTO))
+                            .with(user("UserTest").roles("ADMIN")))
 
                     //ASSERT
                     .andExpect(status().isOk())
@@ -388,6 +469,44 @@ class ProductControllerTest {
                     .andExpect(jsonPath("$.price").value(productRequestDTO.price().toString()))
 
                     .andDo(result -> verify(productService, times(1)).updateProduct(productID,productRequestDTO));
+        }
+
+        @Test
+        @DisplayName("Should return 403 when users role is common.")
+        void update_WhenUserIsCommon_Return403() throws Exception {
+            //ARRANGE
+            UUID productID = UUID.randomUUID();
+            ProductRequestDTO productRequestDTO = new ProductRequestDTO("Smartphone X",10.7);
+
+            //ACT
+            mockMvc.perform(put(PRODUCT_API_URL + "/{id}", productID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(productRequestDTO))
+                            .with(user("UserTest").roles("COMMON")))
+
+
+                    //ASSERT
+                    .andExpect(status().isForbidden())
+
+                    .andDo(result -> verify(productService,never()).updateProduct(any(UUID.class),any(ProductRequestDTO.class)));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when user isn't authenticated.")
+        void update_WhenUserNotAuthenticated_Return401() throws Exception {
+            //ARRANGE
+            UUID productID = UUID.randomUUID();
+            ProductRequestDTO productRequestDTO = new ProductRequestDTO("Smartphone X",10.7);
+
+            //ACT
+            mockMvc.perform(put(PRODUCT_API_URL + "/{id}", productID)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(productRequestDTO)))
+
+                    //ASSERT
+                    .andExpect(status().isUnauthorized())
+
+                    .andDo(result -> verify(productService,never()).updateProduct(any(UUID.class),any(ProductRequestDTO.class)));
         }
 
     }
@@ -404,7 +523,8 @@ class ProductControllerTest {
             doNothing().when(productService).deleteProduct(productID);
 
             //ACT
-            mockMvc.perform(delete(PRODUCT_API_URL + "/{id}", productID))
+            mockMvc.perform(delete(PRODUCT_API_URL + "/{id}", productID)
+                            .with(user("UserTest").roles("ADMIN")))
 
                     //ASSERT
                     .andExpect(status().isNoContent())
@@ -423,7 +543,8 @@ class ProductControllerTest {
             doThrow(new ProductNotFoundException(expectedMessage)).when(productService).deleteProduct(nonExistentId);
 
             //ACT
-            mockMvc.perform(delete(PRODUCT_API_URL + "/{id}", nonExistentId))
+            mockMvc.perform(delete(PRODUCT_API_URL + "/{id}", nonExistentId)
+                            .with(user("UserTest").roles("ADMIN")))
 
                     //ASSERT
                     .andExpect(status().isNotFound())
@@ -440,7 +561,8 @@ class ProductControllerTest {
             String invalidFormatId = "Id in Invalid Format";
 
             //ACT
-            mockMvc.perform(delete(PRODUCT_API_URL + "/{id}", invalidFormatId))
+            mockMvc.perform(delete(PRODUCT_API_URL + "/{id}", invalidFormatId)
+                            .with(user("UserTest").roles("ADMIN")))
 
                     //ASSERT
                     .andExpect(status().isBadRequest())
@@ -449,6 +571,38 @@ class ProductControllerTest {
 
                     .andDo(result -> verify(productService, never()).deleteProduct(any(UUID.class)));
         }
+
+        @Test
+        @DisplayName("Should return 403 when users role is common.")
+        void delete_WhenUserIsCommon_Return403() throws Exception {
+            //ARRANGE
+            UUID productID = UUID.randomUUID();
+
+            //ACT
+            mockMvc.perform(delete(PRODUCT_API_URL + "/{id}", productID)
+                            .with(user("UserTest").roles("COMMON")))
+
+                    //ASSERT
+                    .andExpect(status().isForbidden())
+
+                    .andDo(result -> verify(productService, never()).deleteProduct(any(UUID.class)));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when user isn't authenticated.")
+        void delete_WhenUserNotAuthenticated_Return401() throws Exception {
+            //ARRANGE
+            UUID productID = UUID.randomUUID();
+
+            //ACT
+            mockMvc.perform(delete(PRODUCT_API_URL + "/{id}", productID))
+
+                    //ASSERT
+                    .andExpect(status().isUnauthorized())
+
+                    .andDo(result -> verify(productService, never()).deleteProduct(any(UUID.class)));
+        }
+
     }
 
 }

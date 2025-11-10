@@ -5,6 +5,7 @@ import com.example.product.domain.user.LoginResponseDTO;
 import com.example.product.domain.user.RegisterRequestDTO;
 import com.example.product.domain.user.UserRole;
 import com.example.product.exception.UsernameAlreadyInUseException;
+import com.example.product.infra.security.SecurityConfiguration;
 import com.example.product.repository.UserRepository;
 import com.example.product.service.TokenService;
 import com.example.product.service.UserService;
@@ -13,21 +14,21 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@WebMvcTest(controllers = UserController.class,
-        excludeAutoConfiguration = {SecurityAutoConfiguration.class}
-)
+@Import(SecurityConfiguration.class)
+@WebMvcTest(controllers = UserController.class)
 class UserControllerTest {
 
     @Autowired
@@ -61,7 +62,8 @@ class UserControllerTest {
             //ACT
             mockMvc.perform(post(PRODUCT_API_USER_URL+"/register")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(registerRequestDTO)))
+                    .content(objectMapper.writeValueAsString(registerRequestDTO))
+                    .with(user("User").roles("ADMIN")))
 
                     //ASSERT
 
@@ -85,7 +87,8 @@ class UserControllerTest {
             //ACT
             mockMvc.perform(post(PRODUCT_API_USER_URL+"/register")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(registerRequestDTO)))
+                            .content(objectMapper.writeValueAsString(registerRequestDTO))
+                            .with(user("User").roles("ADMIN")))
 
                     //ASSERT
 
@@ -105,7 +108,8 @@ class UserControllerTest {
             //ACT
             mockMvc.perform(post(PRODUCT_API_USER_URL+"/register")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(registerRequestDTO)))
+                            .content(objectMapper.writeValueAsString(registerRequestDTO))
+                            .with(user("User").roles("ADMIN")))
 
                     //ASSERT
 
@@ -122,6 +126,44 @@ class UserControllerTest {
 
                     .andDo(result -> verify(userService,never()).create(registerRequestDTO));
         }
+
+        @Test
+        @DisplayName("Should return 403 when users role is common.")
+        void register_WhenUserIsCommon_Return403() throws Exception {
+            //ARRANGE
+            RegisterRequestDTO registerRequestDTO = new RegisterRequestDTO("userTest","123", UserRole.ADMIN);
+
+            //ACT
+            mockMvc.perform(post(PRODUCT_API_USER_URL+"/register")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(registerRequestDTO))
+                            .with(user("User").roles("COMMON")))
+
+                    //ASSERT
+
+                    .andExpect(status().isForbidden())
+
+                    .andDo(result -> verify(userService,never()).create(any(RegisterRequestDTO.class)));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when user isn't authenticated.")
+        void register_WhenUserNotAuthenticated_Return401() throws Exception {
+            //ARRANGE
+            RegisterRequestDTO registerRequestDTO = new RegisterRequestDTO("userTest","123", UserRole.ADMIN);
+
+            //ACT
+            mockMvc.perform(post(PRODUCT_API_USER_URL+"/register")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(registerRequestDTO)))
+
+                    //ASSERT
+
+                    .andExpect(status().isUnauthorized())
+
+                    .andDo(result -> verify(userService,never()).create(any(RegisterRequestDTO.class)));
+        }
+
     }
 
     @Nested
