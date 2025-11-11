@@ -3,6 +3,7 @@ package com.example.product.exception;
 import com.example.product.domain.error.ValidationErrorDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -52,5 +53,15 @@ public class GlobalExceptionHandler {
         }else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid format for " + ex.getName() + " Parameter.");
         }
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<String> HttpMessageNotReadableException(HttpMessageNotReadableException ex){
+        if (ex.getMessage().contains("UserRole")){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid value provided for role field. The allowed values are \"ADMIN\" or \"COMMON\".");
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("The request JSON body is invalid or malformed. Please check the format of all fields.");
+        }
+
     }
 }
