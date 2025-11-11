@@ -14,6 +14,11 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> RuntimeException(RuntimeException ex){
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred. Please try again.");
+    }
+
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<String> ProductNotFoundException(ProductNotFoundException ex) {
 
