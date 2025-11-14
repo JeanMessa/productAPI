@@ -2,7 +2,7 @@
 O ProductAPI é uma API REST feita com Spring Boot para registro de produtos, utilizando de tokens JWT para autenticação com endpoints de login e registro.
 
 <h3>Dependências</h3>
-Esse projeto utiliza de Java 17 com Spring Boot 3.5, Spring Boot Dev Tools, Spring Web, Spring Data JPA, Spring Security, Java JWT, Flyway e lombok. Utilizando de PostegreSQL 17.4 para o banco de dados.
+Esse projeto utiliza de Java 17 com Spring Boot 3.5, Spring Boot Dev Tools, Spring Web, Spring Data JPA, Spring Security, Java JWT, Flyway e lombok. Utilizando de PostegreSQL 17.4 para o banco de dados. Este projeto também utiliza JUnit 5 e Mockito para testes.
 
 <h3>Documentação</h3>
 A documentação de todos os endpoints se encontra em https://documenter.getpostman.com/view/45420446/2sB2qi8cwd.
